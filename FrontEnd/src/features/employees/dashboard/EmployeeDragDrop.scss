@@ -1,0 +1,48 @@
+@import "../../../app/common/globalStyles/globalStyles.scss";
+
+.row-drag-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: blue;
+  width: rem(50) !important;
+  height: rem(50) !important;
+  border-radius: rem(5);
+
+  td:not(:first-child) {
+    display: none;
+    visibility: hidden;
+  }
+
+  td:first-child {
+    max-width: 5ch !important;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+.ui.table:not(.unstackable) .row-drag-start {
+  width: 50px !important;
+}
+
+.task-item {
+  width: rem(50);
+  height: rem(50);
+  border-radius: rem(5);
+  background-color: gray;
+
+  .task-item-details {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    color: white;
+
+    &.filled {
+      background-color: blue;
+    }
+  }
+}
