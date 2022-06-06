@@ -2,11 +2,11 @@
 
 .row-drag-start {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   background: blue;
-  width: rem(50) !important;
-  height: rem(50) !important;
+  width: rem(60) !important;
+  height: rem(60) !important;
   border-radius: rem(5);
 
   td:not(:first-child) {
@@ -19,16 +19,18 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    color: white;
   }
 }
 
 .ui.table:not(.unstackable) .row-drag-start {
-  width: 50px !important;
+  width: rem(60) !important;
+  height: rem(60) !important;
 }
 
 .task-item {
-  width: rem(50);
-  height: rem(50);
+  width: rem(60);
+  height: rem(60);
   border-radius: rem(5);
   background-color: gray;
 
@@ -43,6 +45,24 @@
 
     &.filled {
       background-color: blue;
+    }
+  }
+}
+
+@media screen and (max-width: "767px") {
+  .task-item {
+    width: rem(40);
+    height: rem(40);
+  }
+
+  .ui.table:not(.unstackable) .row-drag-start {
+    width: rem(40) !important;
+    height: rem(40) !important;
+    padding-top: 5px !important;
+    td {
+      width: inherit;
+      font-size: 12px;
+      height: inherit;
     }
   }
 }

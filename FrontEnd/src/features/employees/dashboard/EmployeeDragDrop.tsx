@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DragDropContext,
   Draggable,
@@ -7,11 +7,13 @@ import {
   DropResult,
 } from "react-beautiful-dnd";
 import { Grid, Ref, Table } from "semantic-ui-react";
+import { useWindowSize } from "../../../app/common/hooks/screenSize";
+import { useStore } from "../../../app/stores/store";
 import "./EmployeeDragDrop.scss";
 
 interface Props {}
 
-const userData = [
+/* const userData = [
   {
     id: 1,
     name: "Brijesh Kuntal",
@@ -36,9 +38,9 @@ const userData = [
     desc: "description",
     status: "approved",
   },
-];
+]; */
 
-const taskItemsList = [
+/* const taskItemsList = [
   {
     id: 1,
     filled: false,
@@ -54,7 +56,7 @@ const taskItemsList = [
   {
     id: 3,
     filled: false,
-    initials: undefined,
+    initials: "",
     details: {},
   },
   {
@@ -69,11 +71,48 @@ const taskItemsList = [
     initials: "",
     details: {},
   },
-];
+  {
+    id: 6,
+    filled: false,
+    initials: "",
+    details: {},
+  },
+]; */
+
+/* const task2ItemList = [
+  {
+    id: 1,
+    filled: false,
+    initials: "",
+    details: {},
+  },
+  {
+    id: 2,
+    filled: false,
+    initials: "",
+    details: {},
+  },
+]; */
 
 export default observer(function EmployeeDragDrop(props: Props) {
-  const [userList, setUserList] = useState(userData);
-  const [taskList, setTaskList] = useState(taskItemsList);
+  const { user_taskStore } = useStore();
+  const {
+    loadUserDetails,
+    userDetailsList,
+    taskDetailsList,
+    loading,
+    updateUserDetails,
+    updateTaskDetails,
+    updating,
+  } = user_taskStore;
+
+  const screenSize = useWindowSize();
+  const columnsPerRow = screenSize === "mobile" ? 3 : 4;
+
+  useEffect(() => {
+    console.log("test");
+    loadUserDetails();
+  }, []);
 
   const getNameInitials = (name: string): string => {
     let ar = name.split(" ");
@@ -83,16 +122,105 @@ export default observer(function EmployeeDragDrop(props: Props) {
   };
 
   const handleDragEnd = (results: DropResult) => {
+    let tempList = userDetailsList;
     const { source, destination } = results;
     if (!destination) return;
-    if (source.droppableId === destination.droppableId) return;
+    if (
+      source.droppableId === destination.droppableId &&
+      source.droppableId === "user-data-drop"
+    )
+      return;
 
-    if (destination.droppableId === "task-data-drop") {
-      let dragData = userList[source.index];
-      if (dragData && !taskList[destination.index].filled) {
-        setTaskList((prevList: any) => {
-          let newList = JSON.parse(JSON.stringify(prevList));
-          newList = newList.map((val: any, index: number) => {
+    if (destination.droppableId === "user-data-drop") {
+      let dropData: any = taskDetailsList[source.index].details;
+      if (dropData) {
+        tempList.splice(destination.index, 0, dropData);
+        updateUserDetails(tempList);
+        let filteredTaskList = taskDetailsList.map(
+          (val: any, index: number) => {
+            if (index === source.index) {
+              return {
+                ...val,
+                filled: false,
+                initials: "",
+                details: {},
+              };
+            } else {
+              return val;
+            }
+          }
+        );
+        updateTaskDetails(filteredTaskList);
+      }
+    }
+
+    if (destination.droppableId.includes("drop-QA-")) {
+      if (source.droppableId === "user-data-drop") {
+        let dragData = tempList[source.index];
+        if (
+          dragData &&
+          taskDetailsList[destination.index] &&
+          !taskDetailsList[destination.index].filled
+        ) {
+          let filteredTaskList = taskDetailsList.map(
+            (val: any, index: number) => {
+              if (index === destination.index && !val.filled) {
+                return {
+                  ...val,
+                  filled: true,
+                  initials: getNameInitials(dragData.name),
+                  details: dragData,
+                };
+              }
+              return { ...val };
+            }
+          );
+          updateTaskDetails(filteredTaskList);
+          tempList.splice(source.index, 1);
+          updateUserDetails(tempList);
+        }
+      }
+      if (source.droppableId.includes("drop-QA-")) {
+        let dragData: any = taskDetailsList[source.index];
+        if (
+          dragData &&
+          taskDetailsList[destination.index] &&
+          !taskDetailsList[destination.index].filled
+        ) {
+          let dropData: any = taskDetailsList[source.index].details;
+          let tempList = taskDetailsList.map((val, index) => {
+            if (index === source.index) {
+              return {
+                ...val,
+                filled: false,
+                initials: "",
+                details: {},
+              };
+            }
+            if (index === destination.index) {
+              return {
+                ...val,
+                filled: true,
+                initials: getNameInitials(dropData.name),
+                details: dropData,
+              };
+            }
+
+            return { ...val };
+          });
+          updateTaskDetails(tempList);
+        }
+      }
+    }
+    /* else if (destination.droppableId.includes("drop-Developer-")) {
+      if (source.droppableId === "user-data-drop") {
+        let dragData = tempList[source.index];
+        if (
+          dragData &&
+          taskList2[destination.index] &&
+          !taskList2[destination.index].filled
+        ) {
+          let filteredList = taskList2.map((val: any, index: number) => {
             if (index === destination.index && !val.details.id) {
               return {
                 ...val,
@@ -103,32 +231,109 @@ export default observer(function EmployeeDragDrop(props: Props) {
             }
             return { ...val };
           });
+          setTask2List(filteredList);
+          tempList.splice(source.index, 1);
+          updateUserDetails(tempList);
+        }
+      }
 
-          return newList;
-        });
-        userList.splice(source.index, 1);
+      if (source.droppableId.includes("drop-QA-")) {
+        let dragData: any = taskList[source.index];
+        if (
+          dragData &&
+          taskList2[destination.index] &&
+          !taskList2[destination.index].filled
+        ) {
+          let filteredList = taskList2.map((val: any, index: number) => {
+            if (index === destination.index && !val.details.id) {
+              return {
+                ...val,
+                filled: true,
+                initials: getNameInitials(dragData.details.name),
+                details: dragData.details,
+              };
+            }
+            return { ...val };
+          });
+          setTask2List(filteredList);
+
+          filteredList = taskList.map((val: any) => {
+            if (val.id === dragData.id) {
+              return {
+                ...val,
+                filled: false,
+                initials: "",
+                details: {},
+              };
+            }
+            return { ...val };
+          });
+          updateTaskDetails(filteredList);
+        }
       }
-    }
-    if (destination.droppableId === "user-data-drop") {
-      let dropData: any = taskList[source.index].details;
-      if (dropData) {
-        userList.splice(destination.index, 0, dropData);
-        let filteredTaskList = taskList.map((val: any, index: number) => {
-          if (index === source.index) {
-            return {
-              ...val,
-              filled: false,
-              initials: null,
-              details: {},
-            };
-          } else {
-            return val;
-          }
-        });
-        setTaskList(filteredTaskList);
-      }
-    }
+    } */
   };
+
+  const renderColumns = (data: any[], taskName: string) => {
+    let renderData: any;
+    let columnCount = screenSize === "mobile" ? 3 : 4;
+
+    const res = [];
+    for (let i = 0; i < data.length; i += columnCount) {
+      const chunk = data.slice(i, i + columnCount);
+      res.push(chunk);
+    }
+
+    renderData = res.map((row: any, rowIndex: number) => {
+      return (
+        <Droppable
+          droppableId={`drop-${taskName}-${rowIndex}`}
+          direction="horizontal"
+          key={rowIndex}
+        >
+          {(provided, snapshot) => (
+            <Ref innerRef={provided.innerRef}>
+              <Grid.Row {...provided.droppableProps}>
+                {row.map((column: any, columnIndex: number) => {
+                  return (
+                    <Grid.Column index={columnIndex}>
+                      <div className="task-item">
+                        <Draggable
+                          draggableId={`drag-${taskName}-${column.id}`}
+                          index={column.id - 1}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              className={`task-item-details ${
+                                column.filled ? "filled" : ""
+                              }`}
+                              ref={provided.innerRef}
+                              {...provided.dragHandleProps}
+                              {...provided.draggableProps}
+                              style={{
+                                ...(snapshot.isDragging
+                                  ? provided.draggableProps.style
+                                  : ""),
+                              }}
+                            >
+                              {column.initials}
+                            </div>
+                          )}
+                        </Draggable>
+                      </div>
+                    </Grid.Column>
+                  );
+                })}
+              </Grid.Row>
+            </Ref>
+          )}
+        </Droppable>
+      );
+    });
+    return renderData;
+  };
+
+  if (loading) return <>Loading......</>;
 
   return (
     <>
@@ -139,84 +344,59 @@ export default observer(function EmployeeDragDrop(props: Props) {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>Name</Table.HeaderCell>
-              <Table.HeaderCell>Description</Table.HeaderCell>
-              <Table.HeaderCell>Status</Table.HeaderCell>
+              <Table.HeaderCell>Organisation</Table.HeaderCell>
+              <Table.HeaderCell>Date of Joining</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Droppable droppableId="user-data-drop">
             {(provided) => (
               <Ref innerRef={provided.innerRef}>
                 <Table.Body {...provided.droppableProps}>
-                  {userList.map((user: any, index: number) => (
-                    <Draggable
-                      draggableId={`user-data-drag-${user.id.toString()}`}
-                      index={index}
-                    >
-                      {(provided, snapshot) => (
-                        <Ref innerRef={provided.innerRef}>
-                          <Table.Row
-                            className={
-                              snapshot.isDragging ? "row-drag-start" : ""
-                            }
-                            key={index}
-                            id={user.name}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            <Table.Cell>{user.name}</Table.Cell>
-                            <Table.Cell>{user.desc}</Table.Cell>
-                            <Table.Cell>{user.status}</Table.Cell>
-                          </Table.Row>
-                        </Ref>
-                      )}
-                    </Draggable>
-                  ))}
+                  {userDetailsList &&
+                    userDetailsList.map((user: any, index: number) => (
+                      <Draggable
+                        draggableId={`user-data-drag-${user.id.toString()}`}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <Ref innerRef={provided.innerRef}>
+                            <Table.Row
+                              className={
+                                snapshot.isDragging ? "row-drag-start" : ""
+                              }
+                              key={index}
+                              id={user.name}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              <Table.Cell>{user.name}</Table.Cell>
+                              <Table.Cell>{user.org}</Table.Cell>
+                              <Table.Cell>{user.doj}</Table.Cell>
+                            </Table.Row>
+                          </Ref>
+                        )}
+                      </Draggable>
+                    ))}
                   {provided.placeholder}
                 </Table.Body>
               </Ref>
             )}
           </Droppable>
         </Table>
-        <Droppable droppableId={`task-data-drop`} direction="horizontal">
-          {(provided) => (
-            <div ref={provided.innerRef} {...provided.droppableProps}>
-              <Grid>
-                {taskList.map((task: any, index: number) => (
-                  <Grid.Column width={2}>
-                    <div
-                      className="task-item"
-                      key={index}
-                      id={task.id.toString()}
-                    >
-                      <Draggable
-                        draggableId={`task-data-drag-${task.id.toString()}`}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            className={`task-item-details ${
-                              task.filled ? "filled" : ""
-                            }`}
-                            ref={provided.innerRef}
-                            {...provided.dragHandleProps}
-                            {...provided.draggableProps}
-                            style={{
-                              ...(snapshot.isDragging
-                                ? provided.draggableProps.style
-                                : ""),
-                            }}
-                          >
-                            {task.initials}
-                          </div>
-                        )}
-                      </Draggable>
-                    </div>
-                  </Grid.Column>
-                ))}
-              </Grid>
-            </div>
-          )}
-        </Droppable>
+
+        <Grid>
+          <Grid.Column width={6}>
+            <Grid columns={columnsPerRow}>
+              {renderColumns(taskDetailsList, "QA")}
+            </Grid>
+          </Grid.Column>
+          <Grid.Column width={2}></Grid.Column>
+          {/* <Grid.Column width={6}>
+            <Grid columns={columnsPerRow}>
+              {renderColumns(taskDetailsList, "Developer")}
+            </Grid>
+          </Grid.Column> */}
+        </Grid>
       </DragDropContext>
     </>
   );

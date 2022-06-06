@@ -11,10 +11,8 @@ const sleep = (delay: number) => {
   });
 };
 // GraphQL single Entry Point URL
-axios.defaults.baseURL = "http://localhost:8000/userlist/";
+axios.defaults.baseURL = "http://nagarro.test.com:8000/userlist/";
 axios.defaults.method = "get";
-axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
-//axios.defaults.headers.common["Access-Control-Allow-Origin"] = "*";
 
 // Adding bearer token to header of every request
 // axios.interceptors.request.use(config => {

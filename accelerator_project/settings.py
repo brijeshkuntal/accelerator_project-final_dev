@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-o&h42fzsfp$sag_aplpl$f@f60$dk9x1@f1l0f7mi2b#^d&3!1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*',]
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 SHARED_APPS = [
@@ -197,18 +197,13 @@ AUTH_USER_MODEL = 'app_layer.CustomUser'
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 SEND_ACTIVATION_EMAIL = False
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_ALL_ORIGINS = True # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = ["Access-Control-Allow-Origin","accept","accept-encoding","authorization","content-type","dnt","origin","user-agent","x-csrftoken","x-requested-with",]
-CORS_ALLOW_METHODS = ["DELETE","GET","OPTIONS","PATCH","POST","PUT",]
-CORS_REPLACE_HTTPS_REFERER=True
+CORS_ALLOW_ALL_ORIGINS = False
 
-# CSRF_TRUSTED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-# ]
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-# ]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
